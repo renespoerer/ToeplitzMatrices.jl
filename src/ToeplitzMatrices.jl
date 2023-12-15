@@ -1,7 +1,7 @@
 module ToeplitzMatrices
 import DSP: conv
 
-import Base: adjoint, convert, transpose, size, getindex, similar, copy, getproperty, inv, sqrt, copyto!, reverse, conj, zero, fill!, checkbounds, real, imag, isfinite, DimsInteger, iszero
+import Base: adjoint, convert, transpose, size, length, getindex, similar, copy, getproperty, inv, sqrt, copyto!, reverse, conj, zero, fill!, checkbounds, real, imag, isfinite, DimsInteger, iszero
 import Base: parent
 import Base: ==, +, -, *, \
 import Base: AbstractMatrix
