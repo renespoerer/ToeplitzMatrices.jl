@@ -144,3 +144,45 @@ function rmul!(A::Toeplitz, x::Number)
     rmul!(A.vr, x)
     A
 end
+
+"""
+    ToeplitzFactorization
+
+Factorization of a Toeplitz matrix using FFT.
+"""
+struct ToeplitzFactorization{T,A<:AbstractToeplitz{T},S<:Number,P<:Plan{S}} <: Factorization{T}
+    vcvr_dft::Vector{S}
+    tmp::Vector{S}
+    dft::P
+    n::Int
+    m::Int
+end
+
+# doing this non-lazily simplifies implementation of mul!, ldiv! for adjoints
+# of Toeplitz factorizations significantly Base.adjoint(A::ToeplitzFactorization) = Adjoint(A)
+adjoint(T::ToeplitzFactorization) = adjoint!(copy(T))
+function copy(T::ToeplitzFactorization)
+    vcvr_dft = copy(T.vcvr_dft)
+    dft = plan_fft!(vcvr_dft)
+    typeof(T)(vcvr_dft, copy(T.tmp), dft, T.n, T.m)
+end
+# calculates the adjoint but reuses the temporary memory of T
+function adjoint!(T::ToeplitzFactorization)
+    @. T.vcvr_dft = conj(T.vcvr_dft)
+    typeof(T)(T.vcvr_dft, T.tmp, T.dft, T.m, T.n) # switching n and m
+end
+
+size(A::ToeplitzFactorization) = (A.n, A.m)
+function Base.size(A::ToeplitzFactorization, i::Int)
+    if i == 1
+        A.n
+    elseif i == 2
+        A.m
+    elseif i > 2
+        1
+    else
+        throw(DomainError("dimension i cannot be non-positive"))
+    end
+end
+
+length(A::ToeplitzFactorization) = A.n * A.m

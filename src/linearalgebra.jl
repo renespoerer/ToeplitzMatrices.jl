@@ -121,13 +121,13 @@ end
 
 function factorize(A::Toeplitz)
     T = eltype(A)
-    m, n = size(A)
-    S = promote_type(float(T), Complex{Float32})
-    tmp = Vector{S}(undef, m + n - 1)
+    n, m = size(A)
+    S = promote_type(T, Complex{Float32})
+    tmp = Vector{S}(undef, n + m - 1)
     copyto!(tmp, A.vc)
-    copyto!(tmp, m + 1, Iterators.reverse(A.vr), 1, n - 1)
+    copyto!(tmp, n + 1, Iterators.reverse(A.vr), 1, m - 1)
     dft = plan_fft!(tmp)
-    return ToeplitzFactorization{T,typeof(A),S,typeof(dft)}(dft * tmp, similar(tmp), dft)
+    return ToeplitzFactorization{T,typeof(A),S,typeof(dft)}(dft * tmp, similar(tmp), dft, n, m)
 end
 
 function ldiv!(A::Toeplitz, b::StridedVector)
@@ -146,7 +146,7 @@ function factorize(A::SymmetricToeplitz{T}) where {T<:Number}
     @inbounds tmp[m + 1] = zero(T)
     copyto!(tmp, m + 2, Iterators.reverse(vc), 1, m - 1)
     dft = plan_fft!(tmp)
-    return ToeplitzFactorization{T,typeof(A),S,typeof(dft)}(dft * tmp, similar(tmp), dft)
+    return ToeplitzFactorization{T,typeof(A),S,typeof(dft)}(dft * tmp, similar(tmp), dft, m, m)
 end
 
 ldiv!(A::SymmetricToeplitz, b::StridedVector) = copyto!(b, IterativeLinearSolvers.cg(A, zeros(length(b)), b, strang(A), 1000, 100eps())[1])
@@ -184,11 +184,12 @@ const CirculantFactorization{T, V<:AbstractVector{T}} = ToeplitzFactorization{T,
 function factorize(C::Circulant)
     T = eltype(C)
     vc = C.vc
+    m = length(vc)
     S = promote_type(float(T), Complex{Float32})
-    tmp = Vector{S}(undef, length(vc))
+    tmp = Vector{S}(undef, m)
     copyto!(tmp, vc)
     dft = plan_fft!(tmp)
-    return ToeplitzFactorization{T,typeof(C),S,typeof(dft)}(dft * tmp, similar(tmp), dft)
+    return ToeplitzFactorization{T,typeof(C),S,typeof(dft)}(dft * tmp, similar(tmp), dft, m, m)
 end
 
 Base.:*(A::Circulant, B::Circulant) = factorize(A) * factorize(B)
@@ -420,7 +421,7 @@ function factorize(A::LowerTriangularToeplitz)
     tmp = zeros(S, 2 * n - 1)
     copyto!(tmp, v)
     dft = plan_fft!(tmp)
-    return ToeplitzFactorization{T,typeof(A),S,typeof(dft)}(dft * tmp, similar(tmp), dft)
+    return ToeplitzFactorization{T,typeof(A),S,typeof(dft)}(dft * tmp, similar(tmp), dft, n, n)
 end
 function factorize(A::UpperTriangularToeplitz)
     T = eltype(A)
@@ -431,5 +432,5 @@ function factorize(A::UpperTriangularToeplitz)
     tmp[1] = v[1]
     copyto!(tmp, n + 1, Iterators.reverse(v), 1, n - 1)
     dft = plan_fft!(tmp)
-    return ToeplitzFactorization{T,typeof(A),S,typeof(dft)}(dft * tmp, similar(tmp), dft)
+    return ToeplitzFactorization{T,typeof(A),S,typeof(dft)}(dft * tmp, similar(tmp), dft, n, n)
 end

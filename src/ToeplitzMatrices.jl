@@ -72,17 +72,6 @@ function isdiag(A::AbstractToeplitz)
     all(iszero, @view vr[2:end]) && all(iszero, @view vc[2:end])
 end
 
-"""
-    ToeplitzFactorization
-
-Factorization of a Toeplitz matrix using FFT.
-"""
-struct ToeplitzFactorization{T,A<:AbstractToeplitz{T},S<:Number,P<:Plan{S}} <: Factorization{T}
-    vcvr_dft::Vector{S}
-    tmp::Vector{S}
-    dft::P
-end
-
 include("toeplitz.jl")
 include("special.jl")
 include("hankel.jl")
