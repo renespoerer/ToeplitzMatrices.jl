@@ -53,6 +53,8 @@ for (As, Al, st) in cases
         @test As'* xs ≈ Matrix(As)' * xs
         @test Al * xl ≈ Matrix(Al)  * xl
         @test Al'* xl ≈ Matrix(Al)' * xl
+        @test adjoint(factorize(As)) * xs ≈ Matrix(As)' * xs
+        @test adjoint(factorize(Al)) * xl ≈ Matrix(Al)' * xl
         @test [As[n] for n in 1:length(As)] == vec(As)
         @test [Al[n] for n in 1:length(Al)] == vec(Al)
         @test ldiv!(As, LinearAlgebra.copy_oftype(xs, eltype(As))) ≈ Matrix(As) \ xs

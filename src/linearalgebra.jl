@@ -98,6 +98,18 @@ function mul!(
     return C
 end
 
+function (*)(A::ToeplitzFactorization, x::StridedVector)
+    T = promote_type(eltype(A), eltype(x))
+    y = zeros(T, size(A, 1))
+    mul!(y, A, x)
+end
+
+function (*)(A::ToeplitzFactorization, X::StridedMatrix)
+    T = promote_type(eltype(A), eltype(X))
+    Y = zeros(T, size(A, 1), size(X, 2))
+    mul!(Y, A, X)
+end
+
 # Left division of a general matrix B by a general Toeplitz matrix A, i.e. the solution x of Ax=B.
 function ldiv!(A::AbstractToeplitz, B::StridedMatrix)
     if size(A, 1) != size(A, 2)
